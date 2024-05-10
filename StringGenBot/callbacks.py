@@ -1,27 +1,60 @@
 import traceback
-
-from pyrogram import Client, filters
+from data import Data
+from pyrogram import Client
 from pyrogram.types import CallbackQuery, InlineKeyboardMarkup
-
 from StringGenBot.generate import generate_session, ask_ques, buttons_ques
 
 
-@Client.on_callback_query(filters.regex(pattern=r"^(generate|pyrogram|pyrogram1|pyrogram_bot|telethon_bot|telethon)$"))
+# Callbacks
+@Client.on_callback_query()
 async def _callbacks(bot: Client, callback_query: CallbackQuery):
-    query = callback_query.matches[0].group(1)
-    if query == "generate":
+    user = await bot.get_me()
+    # user_id = callback_query.from_user.id
+    mention = user.mention
+    query = callback_query.data.lower()
+    if query.startswith("home"):
+        if query == 'home':
+            chat_id = callback_query.from_user.id
+            message_id = callback_query.message.id
+            await bot.edit_message_text(
+                chat_id=chat_id,
+                message_id=message_id,
+                text=Data.START.format(callback_query.from_user.mention, mention),
+                reply_markup=InlineKeyboardMarkup(Data.buttons),
+            )
+    elif query == "about":
+        chat_id = callback_query.from_user.id
+        message_id = callback_query.message.id
+        await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=Data.ABOUT,
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(Data.home_buttons),
+        )
+    elif query == "help":
+        chat_id = callback_query.from_user.id
+        message_id = callback_query.message.id
+        await bot.edit_message_text(
+            chat_id=chat_id,
+            message_id=message_id,
+            text=Data.HELP,
+            disable_web_page_preview=True,
+            reply_markup=InlineKeyboardMarkup(Data.home_buttons),
+        )
+    elif query == "generate":
         await callback_query.answer()
         await callback_query.message.reply(ask_ques, reply_markup=InlineKeyboardMarkup(buttons_ques))
     elif query.startswith("pyrogram") or query.startswith("telethon"):
         try:
             if query == "pyrogram":
-                await callback_query.answer()
+                await callback_query.answer("↢ ستكون الجلسة التي تم إنشاؤها من بايروجرام v2", show_alert=True)
                 await generate_session(bot, callback_query.message)
             elif query == "pyrogram1":
                 await callback_query.answer()
                 await generate_session(bot, callback_query.message, old_pyro=True)
             elif query == "pyrogram_bot":
-                await callback_query.answer("◍ ستكون الجلسة التي تم إنشاؤها من بايروجرام v2", show_alert=True)
+                await callback_query.answer("↢ ستكون الجلسة التي تم إنشاؤها من بايروجرام v2", show_alert=True)
                 await generate_session(bot, callback_query.message, is_bot=True)
             elif query == "telethon_bot":
                 await callback_query.answer()
@@ -35,7 +68,4 @@ async def _callbacks(bot: Client, callback_query: CallbackQuery):
             await callback_query.message.reply(ERROR_MESSAGE.format(str(e)))
 
 
-ERROR_MESSAGE = "◍ حدث خطأ ما \n\n**الخـطـأ** : {} " \
-            "\n\n**◍ يرجى إعادة توجيه هذه الرسالة إلى @Mano2005700000000000000000000000**, إذا كانت هذه الرسالة " \
-            "◍ لا تحتوي على أي معلومات خاصة" \
-            "◍ لأن هذا الخطأ **لم تقم بتسجيل الدخول إلى الروبوت** !"
+ERROR_MESSAGE = "↢ حدث خطأ ما نوع الخطا : {} \n تواصل مع المطور لحل المشكله @Mano2005700000000000000000000000"
